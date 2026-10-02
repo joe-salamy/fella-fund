@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ r.fund_name }}</title>
+<meta name="description" content="Hypothetical monthly investments in the companies the fellas work at, against the S&amp;P 500 and Nasdaq-100.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --up: #006300;
+  --down: #c62f2f;
+  --contributed: #898781;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --up: #0ca30c;
+    --down: #e66767;
+    --contributed: #898781;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --up: #0ca30c;
+  --down: #e66767;
+  --contributed: #898781;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+.sub { color: var(--ink-2); margin: 0; }
+.muted { color: var(--muted); }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+button.theme {
+  font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; cursor: pointer; white-space: nowrap;
+}
+.card {
+  background: var(--surface); border: 1px solid var(--ring); border-radius: 12px;
+  padding: 20px; margin-bottom: 20px;
+}
+.hero .tiles { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--grid); }
+.hero-label { color: var(--ink-2); font-size: 14px; }
+.hero-value { font-size: 52px; font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+.tile .label { color: var(--ink-2); font-size: 13px; }
+.tile .value { font-size: 22px; font-weight: 600; }
+.tile .delta { font-size: 13px; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 8px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 16px; height: 2px; border-radius: 1px; display: inline-block; }
+.key.step { background: var(--contributed); }
+.chart-box { position: relative; height: 320px; }
+details { margin-top: 12px; }
+summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-weight: 500; color: var(--ink-2); border-bottom: 1px solid var(--axis); padding: 8px 10px; white-space: nowrap; }
+td { border-bottom: 1px solid var(--grid); padding: 8px 10px; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.progress td { color: var(--ink-2); font-style: italic; }
+.tick { color: var(--muted); font-size: 12px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.record { border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.record .label { color: var(--ink-2); font-size: 13px; }
+.record .value { font-size: 18px; font-weight: 600; }
+.jobs { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.jobs > li { border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.jobs ol { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
+@media (max-width: 640px) {
+  .hero-value { font-size: 44px; }
+  .chart-box { height: 260px; }
+  header { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<main>
+{%- set p = r.portfolio %}
+{%- set b0 = r.benchmarks[0] %}
+<header>
+  <div>
+    <h1>{{ r.fund_name }}</h1>
+    <p class="sub">{{ money(r.monthly_buy, False) }} into each fella's company on the 1st of every month since {{ since }}. Pretend money, real bragging rights.</p>
+    <p class="sub muted">Prices as of {{ r.as_of_long }}</p>
+  </div>
+  <button class="theme" id="theme" type="button">Theme: auto</button>
+</header>
+
+<section class="card hero" aria-label="Summary">
+  <div>
+    <div class="hero-label">Portfolio value</div>
+    <div class="hero-value">{{ money(p.value, False) }}</div>
+  </div>
+  <div class="tiles">
+    <div class="tile">
+      <div class="label">Money put in</div>
+      <div class="value">{{ money(p.contributed, False) }}</div>
+    </div>
+    <div class="tile">
+      <div class="label">Gain</div>
+      <div class="value">{{ money(p.gain, False) }}</div>
+      <div class="delta {{ 'up' if p.gain >= 0 else 'down' }}">{{ pct(p.gain / p.contributed, True) }} total</div>
+    </div>
+    <div class="tile">
+      <div class="label">Annualized return</div>
+      <div class="value">{{ pct(p.xirr) }}</div>
+    </div>
+    {%- for b in r.benchmarks %}
+    {%- set d = p.value - p.bench_value[b.ticker] %}
+    <div class="tile">
+      <div class="label">vs {{ b.name }}</div>
+      <div class="value">{{ "+" if d >= 0 }}{{ money(d, False) }}</div>
+      <div class="delta muted">{{ b.ticker }} would be {{ pct(p.bench_xirr[b.ticker]) }} annualized</div>
+    </div>
+    {%- endfor %}
+  </div>
+</section>
+
+<section class="card" aria-labelledby="h-fund">
+  <h2 id="h-fund">Fund vs. the same money in the index</h2>
+  <p class="sub">Every buy is mirrored into {% for b in r.benchmarks %}{{ b.ticker }}{% if not loop.last %} and {% endif %}{% endfor %} on the same day, so the lines are directly comparable.</p>
+  <div class="legend">
+    <span><i class="key" style="background: var(--s1)"></i>{{ r.fund_name }}</span>
+    {%- for b in r.benchmarks %}
+    <span><i class="key" style="background: var(--s{{ loop.index + 1 }})"></i>{{ b.name }} ({{ b.ticker }})</span>
+    {%- endfor %}
+    <span><i class="key step"></i>Money put in</span>
+  </div>
+  <div class="chart-box"><canvas id="chart-fund" role="img" aria-label="Line chart of fund value against benchmark shadow portfolios over time"></canvas></div>
+  <details>
+    <summary>Table view</summary>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Month end</th><th class="num">{{ r.fund_name }}</th>{% for b in r.benchmarks %}<th class="num">{{ b.ticker }}</th>{% endfor %}<th class="num">Money put in</th></tr></thead>
+      <tbody>
+      {%- for row in table_rows %}
+        <tr><td>{{ row.date }}</td><td class="num">{{ money(row.fund, False) }}</td>{% for b in r.benchmarks %}<td class="num">{{ money(row.bench[b.ticker], False) }}</td>{% endfor %}<td class="num">{{ money(row.contributed, False) }}</td></tr>
+      {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
+</section>
+
+<section class="card" aria-labelledby="h-board">
+  <h2 id="h-board">Leaderboard</h2>
+  <p class="sub">Each fella's buys, including shares from past jobs, against the same money in {{ b0.ticker }}.</p>
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th>Fella</th><th>Now at</th><th class="num">Put in</th><th class="num">Value</th>
+      <th class="num">Annualized</th><th class="num">vs {{ b0.ticker }}</th>
+      <th class="num" title="Fella of the Month">FotM</th><th class="num" title="Stinky Loser of the Month">SLotM</th>
+      <th class="num" title="Months in a row beating {{ b0.ticker }} (current / best)">Beat {{ b0.ticker }} streak</th>
+    </tr></thead>
+    <tbody>
+    {%- for f in r.leaderboard %}
+      <tr>
+        <td><strong>{{ f.name }}</strong></td>
+        <td>{{ f.now }}</td>
+        <td class="num">{{ money(f.contributed, False) }}</td>
+        <td class="num">{{ money(f.value, False) }}</td>
+        <td class="num">{{ pct(f.xirr) }}</td>
+        <td class="num {{ 'up' if f.alpha >= 0 else 'down' }}">{{ "+" if f.alpha >= 0 }}{{ money(f.alpha, False) }}</td>
+        <td class="num">{{ f.fotm }}</td>
+        <td class="num">{{ f.slotm }}</td>
+        <td class="num">{{ f.streak }} <span class="tick">/ {{ f.best_streak }}</span></td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card" aria-labelledby="h-co">
+  <h2 id="h-co">Value by company</h2>
+  <p class="sub">What each company's shares are worth over time. Shares from past jobs are held, not sold.</p>
+  <div class="legend">
+    {%- for t in r.history.tickers %}
+    <span><i class="key" style="background: var(--s{{ loop.index }})"></i>{{ r.company_names[t] }} ({{ t }})</span>
+    {%- endfor %}
+  </div>
+  <div class="chart-box"><canvas id="chart-co" role="img" aria-label="Line chart of each company's holding value over time"></canvas></div>
+  <div class="table-wrap" style="margin-top: 12px;"><table>
+    <thead><tr><th>Company</th><th>Held for</th><th class="num">Put in</th><th class="num">Value</th><th class="num">Annualized</th></tr></thead>
+    <tbody>
+    {%- for c in r.companies %}
+      <tr><td>{{ c.company }} <span class="tick">{{ c.ticker }}</span></td><td>{{ c.holders | join(", ") }}</td>
+        <td class="num">{{ money(c.contributed, False) }}</td><td class="num">{{ money(c.value, False) }}</td><td class="num">{{ pct(c.xirr) }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+  <details>
+    <summary>Table view (month-end values)</summary>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Month end</th>{% for t in r.history.tickers %}<th class="num">{{ t }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {%- for row in table_rows %}
+        <tr><td>{{ row.date }}</td>{% for t in r.history.tickers %}<td class="num">{{ money(row.tickers[t], False) }}</td>{% endfor %}</tr>
+      {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
+</section>
+
+<section class="card" aria-labelledby="h-rec">
+  <h2 id="h-rec">Records</h2>
+  {%- set rec = r.records %}
+  <div class="grid2" style="margin-top: 12px;">
+    {%- if rec.best %}
+    <div class="record"><div class="label">Best month ever</div>
+      <div class="value up">{{ pct(rec.best.ret, True) }}</div>
+      <div>{{ rec.best.person }} ({{ rec.best.ticker }}), {{ rec.best.month }}</div></div>
+    {%- endif %}
+    {%- if rec.worst %}
+    <div class="record"><div class="label">Worst month ever</div>
+      <div class="value down">{{ pct(rec.worst.ret, True) }}</div>
+      <div>{{ rec.worst.person }} ({{ rec.worst.ticker }}), {{ rec.worst.month }}</div></div>
+    {%- endif %}
+    {%- if rec.fotm_top %}
+    <div class="record"><div class="label">Most Fella of the Month titles</div>
+      <div class="value">{{ rec.fotm_top }}</div><div>{{ names(rec.fotm_leaders) }}</div></div>
+    {%- endif %}
+    {%- if rec.slotm_top %}
+    <div class="record"><div class="label">Most Stinky Loser titles</div>
+      <div class="value">{{ rec.slotm_top }}</div><div>{{ names(rec.slotm_leaders) }}</div></div>
+    {%- endif %}
+    {%- if rec.longest_streak %}
+    <div class="record"><div class="label">Longest streak beating {{ b0.ticker }}</div>
+      <div class="value">{{ rec.longest_streak.months }} months</div><div>{{ rec.longest_streak.name }}</div></div>
+    {%- endif %}
+  </div>
+  {%- if rec.years %}
+  <div class="table-wrap" style="margin-top: 16px;"><table>
+    <thead><tr><th>Year</th><th>Fella of the Year</th><th>Stinky Loser of the Year</th></tr></thead>
+    <tbody>
+    {%- for y in rec.years %}
+      <tr><td>{{ y.year }}{% if not y.complete %} <span class="tick">so far</span>{% endif %}</td><td>{{ names(y.fella) }}</td><td>{{ names(y.stinky) }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+  <p class="sub muted" style="font-size: 13px; margin-top: 8px;">Most monthly titles in the calendar year; ties go to the higher (or lower) total of monthly returns.</p>
+  {%- endif %}
+</section>
+
+<section class="card" aria-labelledby="h-months">
+  <h2 id="h-months">Month by month</h2>
+  <p class="sub">Return of each $10K buy from its 1st to the next 1st. 🏆 Fella of the Month, 🦨 Stinky Loser of the Month.</p>
+  <div class="table-wrap" style="margin-top: 12px;"><table>
+    <thead><tr><th>Month</th>{% for f in r.fellas %}<th class="num">{{ f }}</th>{% endfor %}{% for b in r.benchmarks %}<th class="num">{{ b.ticker }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {%- for m in r.months %}
+      {%- set by = {} %}
+      {%- for l in m.lots %}{% set _ = by.update({l.person: l}) %}{% endfor %}
+      <tr class="{{ '' if m.complete else 'progress' }}">
+        <td>{{ m.label }}{% if not m.complete %} <span class="tick">so far</span>{% endif %}</td>
+        {%- for f in r.fellas %}
+        {%- if f in by %}
+        <td class="num"><span class="{{ 'up' if by[f].ret >= 0 else 'down' }}">{{ pct(by[f].ret, True) }}</span> <span class="tick">{{ by[f].ticker }}</span>{% if f in m.fotm %} 🏆{% endif %}{% if f in m.slotm %} 🦨{% endif %}</td>
+        {%- else %}
+        <td class="num tick">sat out</td>
+        {%- endif %}
+        {%- endfor %}
+        {%- for b in r.benchmarks %}
+        <td class="num">{{ pct(m.bench[b.ticker], True) }}</td>
+        {%- endfor %}
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card" aria-labelledby="h-jobs">
+  <h2 id="h-jobs">Job history</h2>
+  <ul class="jobs" style="margin-top: 12px;">
+  {%- for f in r.leaderboard | sort(attribute="name") %}
+    <li><strong>{{ f.name }}</strong>
+      <ol>
+      {%- for j in f.jobs | reverse %}
+        <li>{{ j.company }}{% if j.ticker %} ({{ j.ticker }}){% else %}, sitting out{% endif %}: {{ j.start }} to {{ j.end or "now" }}</li>
+      {%- endfor %}
+      </ol>
+    </li>
+  {%- endfor %}
+  </ul>
+</section>
+
+<footer>
+  Hypothetical portfolio; no real money is invested. Buys use the last close before the 1st of each month.
+  {%- if r.total_return %} Returns include reinvested dividends (Yahoo Finance adjusted closes).{% endif %}
+  Annualized figures are money-weighted (XIRR). <a href="data.json" style="color: inherit;">Raw data</a>.
+</footer>
+</main>
+
+<script id="fund-data" type="application/json">{{ r | tojson }}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById("fund-data").textContent);
+  const root = document.documentElement;
+  const btn = document.getElementById("theme");
+  const modes = ["auto", "light", "dark"];
+  let mode = "auto";
+  try { mode = localStorage.getItem("fella-theme") || "auto"; } catch (e) {}
+
+  function applyTheme() {
+    if (mode === "auto") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", mode);
+    btn.textContent = "Theme: " + mode;
+  }
+  btn.addEventListener("click", function () {
+    mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+    try { localStorage.setItem("fella-theme", mode); } catch (e) {}
+    applyTheme();
+    draw();
+  });
+  applyTheme();
+  if (typeof Chart === "undefined") return;
+
+  const css = (name) => getComputedStyle(root).getPropertyValue(name).trim();
+  const fmt = (v) => "$" + Math.round(v).toLocaleString("en-US");
+  const short = (v) => Math.abs(v) >= 1e6 ? "$" + (v / 1e6).toFixed(1) + "M"
+    : Math.abs(v) >= 1e3 ? "$" + Math.round(v / 1e3) + "K" : "$" + v;
+  const labels = data.history.dates;
+
+  const crosshair = {
+    id: "crosshair",
+    afterDraw(chart) {
+      const a = chart.tooltip && chart.tooltip.getActiveElements();
+      if (!a || !a.length) return;
+      const x = a[0].element.x, ctx = chart.ctx, y = chart.chartArea;
+      ctx.save();
+      ctx.strokeStyle = css("--axis");
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, y.top); ctx.lineTo(x, y.bottom); ctx.stroke();
+      ctx.restore();
+    },
+  };
+
+  function line(label, values, color, extra) {
+    return Object.assign({
+      label, data: values, borderColor: color, backgroundColor: color,
+      borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBorderWidth: 2,
+      pointHoverBorderColor: css("--surface"), tension: 0, borderCapStyle: "round", borderJoinStyle: "round",
+    }, extra || {});
+  }
+
+  function options() {
+    return {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: css("--surface"), titleColor: css("--ink-2"), bodyColor: css("--ink"),
+          borderColor: css("--axis"), borderWidth: 1, padding: 10, boxPadding: 4,
+          usePointStyle: true,
+          callbacks: {
+            label: (c) => " " + fmt(c.parsed.y) + "  " + c.dataset.label,
+            labelPointStyle: () => ({ pointStyle: "line", rotation: 0 }),
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false }, border: { color: css("--axis") },
+          ticks: {
+            color: css("--muted"), maxRotation: 0, autoSkip: false,
+            callback: function (v, i) {
+              const d = labels[i];
+              if (i === 0 || d.slice(5, 7) === labels[i - 1].slice(5, 7)) return null;
+              const mo = Number(d.slice(5, 7));
+              if (this.chart.width < 560) return mo === 1 ? d.slice(0, 4) : null;
+              if (![1, 4, 7, 10].includes(mo)) return null;
+              return new Date(d + "T12:00:00").toLocaleString("en-US", { month: "short", year: "numeric" });
+            },
+          },
+        },
+        y: {
+          beginAtZero: true, grid: { color: css("--grid") }, border: { display: false },
+          ticks: { color: css("--muted"), callback: short, maxTicksLimit: 6 },
+        },
+      },
+    };
+  }
+
+  let charts = [];
+  function draw() {
+    charts.forEach((c) => c.destroy());
+    const fundSets = [line(data.fund_name, data.history.fund, css("--s1"))];
+    data.benchmarks.forEach((b, i) =>
+      fundSets.push(line(b.name + " (" + b.ticker + ")", data.history.bench[b.ticker], css("--s" + (i + 2)))));
+    fundSets.push(line("Money put in", data.history.contributed, css("--contributed"),
+      { stepped: true, borderWidth: 1.5 }));
+    const coSets = Object.keys(data.history.tickers).map((t, i) =>
+      line(data.company_names[t] + " (" + t + ")", data.history.tickers[t], css("--s" + (i % 8 + 1))));
+    charts = [
+      new Chart(document.getElementById("chart-fund"), { type: "line", data: { labels, datasets: fundSets }, options: options(), plugins: [crosshair] }),
+      new Chart(document.getElementById("chart-co"), { type: "line", data: { labels, datasets: coSets }, options: options(), plugins: [crosshair] }),
+    ];
+  }
+  draw();
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (mode === "auto") draw(); });
+})();
+</script>
+</body>
+</html>

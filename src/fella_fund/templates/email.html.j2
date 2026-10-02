@@ -1,0 +1,82 @@
+{%- set p = r.portfolio -%}
+{%- set b0 = r.benchmarks[0] -%}
+<div style="font-size: 16px; font-family: Arial, Helvetica, sans-serif; color: #0b0b0b; max-width: 640px;">
+  Sup fellas,<br><br>
+  This is your monthly newsletter for the {{ r.fund_name }}, where we buy {{ money(r.monthly_buy, False) }} of each of our companies' stocks every month.<br>
+  As of <strong>{{ r.as_of_long }}</strong>, our portfolio is at <strong>{{ money(p.value) }}</strong> with an annualized return of <strong>{{ pct(p.xirr) }}</strong>.<br><br>
+
+  {% for b in r.benchmarks -%}
+  {% if loop.first %}If we'd put the same money into the {{ b.name }}, we'd have {% else %}; in the {{ b.name }}, {% endif -%}
+  <strong>{{ money(p.bench_value[b.ticker]) }}</strong> ({{ pct(p.bench_xirr[b.ticker]) }} annualized)
+  {%- endfor %}.
+  {%- set diff = p.value - p.bench_value[b0.ticker] %}
+  That means we're <strong>{{ "beating" if diff >= 0 else "losing to" }} the {{ b0.name }} by {{ money(diff|abs) }}</strong>.<br><br>
+
+  <img src="cid:chart" alt="Fund value vs. the same money in the S&amp;P 500 and Nasdaq-100" width="600" style="max-width: 100%; height: auto;"><br><br>
+
+  {%- if m and m.fotm %}
+  Our Fella of the Month for {{ m_name }} is <strong>{{ names(m.fotm) }}</strong>, whose stock returned <strong>{{ pct(m_best) }}</strong>. Great job, {{ names(m.fotm) }}! You contribute so much shareholder value!<br>
+  Our Stinky Loser of the Month for {{ m_name }} is <strong>{{ names(m.slotm) }}</strong>, whose stock returned <strong>{{ pct(m_worst) }}</strong>. Go fuck yourself, {{ names(m.slotm) }}.<br><br>
+  {%- endif %}
+
+  {%- if m %}
+  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-size: 14px; margin-bottom: 16px;">
+    <tr style="border-bottom: 1px solid #c3c2b7; text-align: left; color: #52514e;">
+      <th style="font-weight: normal;">{{ m_name }}</th>
+      <th style="font-weight: normal;">Company</th>
+      <th style="font-weight: normal; text-align: right;">Return</th>
+      <th style="font-weight: normal; text-align: right;">vs {{ b0.ticker }}</th>
+    </tr>
+    {%- for l in m_rows %}
+    <tr style="border-bottom: 1px solid #e1e0d9;">
+      <td>{{ l.person }}</td>
+      <td>{{ l.company }} ({{ l.ticker }})</td>
+      <td style="text-align: right;">{{ pct(l.ret, True) }}</td>
+      <td style="text-align: right;">{{ pct(l.ret - m.bench[b0.ticker], True) }}</td>
+    </tr>
+    {%- endfor %}
+    {%- for b in r.benchmarks %}
+    <tr style="color: #52514e;">
+      <td colspan="2">{{ b.name }} ({{ b.ticker }})</td>
+      <td style="text-align: right;">{{ pct(m.bench[b.ticker], True) }}</td>
+      <td></td>
+    </tr>
+    {%- endfor %}
+  </table>
+  {%- endif %}
+
+  {{ fella_leader_text }}<br>
+  {{ stinky_leader_text }}<br><br>
+
+  {%- if streakers %}
+  {%- for s in streakers %}
+  <strong>{{ s.name }}</strong> has beaten the {{ b0.name }} <strong>{{ s.streak }} months in a row</strong>.<br>
+  {%- endfor %}
+  <br>
+  {%- endif %}
+
+  {%- if year %}
+  <strong>{{ year.year }} awards:</strong><br>
+  Fella of the Year: <strong>{{ names(year.fella) }}</strong>. Legend.<br>
+  Stinky Loser of the Year: <strong>{{ names(year.stinky) }}</strong>. A full year of this. Unbelievable.<br><br>
+  {%- endif %}
+
+  {%- if job_changes %}
+  <strong>Job changes:</strong><br>
+  {%- for j in job_changes %}
+  {{ j }}<br>
+  {%- endfor %}
+  <br>
+  {%- endif %}
+
+  {%- if site_url %}
+  Full standings, charts, and records: <a href="{{ site_url }}">{{ site_url }}</a><br><br>
+  {%- endif %}
+
+  Until next month!<br><br>
+  Sincerely,<br>
+  The Fella Fund Managers<br><br>
+  {%- if has_image %}
+  <img src="cid:newsletter_image" alt="Newsletter Image" width="35%" height="35%">
+  {%- endif %}
+</div>

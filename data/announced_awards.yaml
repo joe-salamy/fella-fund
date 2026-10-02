@@ -1,0 +1,11 @@
+# Awards as announced by the old Google Sheet, for the months where the clean
+# recomputation disagrees. The sheet priced weekend 1sts with the next trading
+# day's close (and gave #N/A for Aug/Sep 2024), so these months would come out
+# differently today. Listing them here keeps history as it was announced.
+# Delete an entry to let the computed result stand. Empty lists = no award.
+
+2024-08-01: {fotm: [], slotm: []}
+2024-09-01: {fotm: [], slotm: []}
+2024-12-01: {fotm: [Murphy], slotm: [Griff]}
+2025-05-01: {fotm: [Griff], slotm: [Brando]}
+2026-06-01: {fotm: [Murphy], slotm: [Griff]}

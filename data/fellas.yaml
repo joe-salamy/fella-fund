@@ -1,0 +1,45 @@
+# Fella Fund roster. Everything else (buys, returns, awards, benchmarks) is
+# computed from this file plus market prices, so editing a date here and
+# rebuilding is all a job change takes.
+#
+# Rules:
+#   - On the 1st of every month, the fund buys `monthly_buy` dollars of the
+#     ticker of every fella whose job covers that date (start <= 1st <= end),
+#     at the last close before the 1st.
+#   - Shares from an old job are held forever and stay credited to the fella.
+#   - A job with `ticker: null` (private company, grad school, unemployed)
+#     means the fella sits out: no buy that month.
+#   - `end` is the last day at the job; omit it for the current job.
+
+fund:
+  name: Fella Fund
+  start: 2024-08-01
+  monthly_buy: 10000
+  total_return: true
+  benchmarks:
+    - ticker: SPY
+      name: S&P 500
+    - ticker: QQQ
+      name: Nasdaq-100
+
+fellas:
+  - name: Joe
+    jobs:
+      - company: Mattel
+        ticker: MAT
+        start: 2024-08-01
+  - name: Griff
+    jobs:
+      - company: Dell
+        ticker: DELL
+        start: 2024-08-01
+  - name: Brando
+    jobs:
+      - company: ADP
+        ticker: ADP
+        start: 2024-08-01
+  - name: Murphy
+    jobs:
+      - company: RTX
+        ticker: RTX
+        start: 2024-08-01

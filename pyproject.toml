@@ -1,0 +1,29 @@
+[project]
+name = "fella-fund"
+version = "0.1.0"
+description = "Fake monthly investments in the companies the fellas work at, benchmarked against SPY and QQQ."
+requires-python = ">=3.12"
+dependencies = [
+    "yfinance>=0.2.50",
+    "pandas>=2.2",
+    "jinja2>=3.1",
+    "matplotlib>=3.9",
+    "pyyaml>=6.0",
+    "ghp-import>=2.1",
+]
+
+[project.scripts]
+fella = "fella_fund.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fella_fund"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

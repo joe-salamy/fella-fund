@@ -1,0 +1,7 @@
+[Unit]
+Description=Fella Fund: email an alert that %i failed
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Code/fella-fund
+ExecStart=/home/joesa/.local/bin/uv run --frozen fella alert %i

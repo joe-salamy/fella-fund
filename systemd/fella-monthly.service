@@ -1,0 +1,11 @@
+[Unit]
+Description=Fella Fund monthly: send the newsletter, then rebuild and publish the site
+Documentation=file://%h/Code/fella-fund/README.md
+OnFailure=fella-alert@%n.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Code/fella-fund
+ExecStart=/home/joesa/.local/bin/uv run --frozen fella monthly
+Nice=10
+TimeoutStartSec=30min
