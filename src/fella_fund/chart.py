@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.ticker import FuncFormatter, MaxNLocator  # noqa: E402
+from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 # Validated categorical slots (light mode), see the site template for the dark steps.
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
@@ -51,7 +51,7 @@ def render(report: dict, path: Path) -> Path:
                 xytext=(8, 0), textcoords="offset points", va="center",
                 color=INK, fontsize=10, fontweight="bold")
 
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=5, steps=[1, 2, 2.5, 5, 10]))
+    ax.set_yscale("log")
     ax.yaxis.set_major_formatter(FuncFormatter(_short_money))
     ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=[1, 4, 7, 10]))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
@@ -62,7 +62,6 @@ def render(report: dict, path: Path) -> Path:
     ax.spines["bottom"].set_color(AXIS)
     ax.tick_params(colors=MUTED, length=0, labelsize=9)
     ax.margins(x=0.01)
-    ax.set_ylim(bottom=0)
 
     ax.set_title("Fund value vs. the same money in the index", loc="left",
                  color=INK, fontsize=12, fontweight="bold", pad=24)

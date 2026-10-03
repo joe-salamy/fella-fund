@@ -188,8 +188,8 @@ class Analysis:
                 for l in lots
             )
             bench_value[b] = bv
-            bench_xirr[b] = xirr(flows + [(self.today, bv)])
-        return Position(contributed, value, xirr(flows + [(self.today, value)]),
+            bench_xirr[b] = xirr(flows + [(self.as_of, bv)])
+        return Position(contributed, value, xirr(flows + [(self.as_of, value)]),
                         bench_value, bench_xirr)
 
     @property
