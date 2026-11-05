@@ -94,8 +94,8 @@ fellas:
         start: 2024-08-01
   - name: Sarge
     jobs:
-      - company: Roundhill Sports Betting & iGaming ETF
-        ticker: BETZ
+      - company: Johnson & Johnson
+        ticker: JNJ
         start: 2024-08-01
   - name: Cr8
     jobs:
