@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ r.fund_name }}</title>
-<meta name="description" content="Hypothetical monthly investments in the companies the fellas work at, against the S&amp;P 500 and Nasdaq-100.">
+<meta name="description" content="Hypothetical monthly investments in the companies or index funds the fellas work at, against the S&amp;P 500 and Nasdaq-100.">
 <style>
 :root {
   color-scheme: light;
@@ -21,6 +21,8 @@
   --contributed: #898781;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
   --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --s9: #6f4e37; --s10: #0e7c86; --s11: #b23a8f; --s12: #6b8e23;
+  --s13: #4b5cc4; --s14: #c25e00; --s15: #2f7d5b; --s16: #8c6d1f;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -38,6 +40,8 @@
     --contributed: #898781;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --s9: #c08a5a; --s10: #4fc3d4; --s11: #e07ac0; --s12: #a3c45a;
+  --s13: #8f9bf0; --s14: #f0a05a; --s15: #6fd3a5; --s16: #d4b45a;
   }
 }
 :root[data-theme="dark"] {
@@ -55,6 +59,8 @@
   --contributed: #898781;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
   --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --s9: #c08a5a; --s10: #4fc3d4; --s11: #e07ac0; --s12: #a3c45a;
+  --s13: #8f9bf0; --s14: #f0a05a; --s15: #6fd3a5; --s16: #d4b45a;
 }
 
 * { box-sizing: border-box; }
@@ -98,6 +104,7 @@ summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th { text-align: left; font-weight: 500; color: var(--ink-2); border-bottom: 1px solid var(--axis); padding: 8px 10px; white-space: nowrap; }
 td { border-bottom: 1px solid var(--grid); padding: 8px 10px; white-space: nowrap; }
+td.wrap { white-space: normal; min-width: 180px; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.progress td { color: var(--ink-2); font-style: italic; }
 .tick { color: var(--muted); font-size: 12px; }
@@ -123,7 +130,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
 <header>
   <div>
     <h1>{{ r.fund_name }}</h1>
-    <p class="sub">{{ money(r.monthly_buy, False) }} into each fella's company on the 1st of every month since {{ since }}. Pretend money, real bragging rights.</p>
+    <p class="sub">{{ money(r.monthly_buy, False) }} into each fella's current company or index fund on the 1st of every month since {{ since }}. Pretend money, real bragging rights.</p>
     <p class="sub muted">Prices as of {{ r.as_of_long }}</p>
   </div>
   <button class="theme" id="theme" type="button">Theme: auto</button>
@@ -197,7 +204,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
     {%- for f in r.leaderboard %}
       <tr>
         <td><strong>{{ f.name }}</strong></td>
-        <td>{{ f.now }}</td>
+        <td class="wrap">{{ f.now }}</td>
         <td class="num">{{ money(f.contributed, False) }}</td>
         <td class="num">{{ money(f.value, False) }}</td>
         <td class="num">{{ pct(f.xirr) }}</td>
@@ -212,19 +219,19 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
 </section>
 
 <section class="card" aria-labelledby="h-co">
-  <h2 id="h-co">Value by company</h2>
-  <p class="sub">What each company's shares are worth over time. Shares from past jobs are held, not sold.</p>
+  <h2 id="h-co">Value by holding</h2>
+  <p class="sub">What each company or index fund is worth over time. Shares from past jobs are held, not sold.</p>
   <div class="legend">
     {%- for t in r.history.tickers %}
-    <span><i class="key" style="background: var(--s{{ loop.index }})"></i>{{ r.company_names[t] }} ({{ t }})</span>
+    <span title="{{ r.company_names[t] }}"><i class="key" style="background: var(--s{{ loop.index }})"></i>{{ t }}</span>
     {%- endfor %}
   </div>
-  <div class="chart-box"><canvas id="chart-co" role="img" aria-label="Line chart of each company's holding value over time"></canvas></div>
+  <div class="chart-box"><canvas id="chart-co" role="img" aria-label="Line chart of each holding's value over time"></canvas></div>
   <div class="table-wrap" style="margin-top: 12px;"><table>
-    <thead><tr><th>Company</th><th>Held for</th><th class="num">Put in</th><th class="num">Value</th><th class="num">Annualized</th></tr></thead>
+    <thead><tr><th>Holding</th><th>Held by</th><th class="num">Put in</th><th class="num">Value</th><th class="num">Annualized</th></tr></thead>
     <tbody>
     {%- for c in r.companies %}
-      <tr><td>{{ c.company }} <span class="tick">{{ c.ticker }}</span></td><td>{{ c.holders | join(", ") }}</td>
+      <tr><td class="wrap">{{ c.company }} <span class="tick">{{ c.ticker }}</span></td><td>{{ c.holders | join(", ") }}</td>
         <td class="num">{{ money(c.contributed, False) }}</td><td class="num">{{ money(c.value, False) }}</td><td class="num">{{ pct(c.xirr) }}</td></tr>
     {%- endfor %}
     </tbody>
@@ -235,7 +242,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
       <thead><tr><th>Month end</th>{% for t in r.history.tickers %}<th class="num">{{ t }}</th>{% endfor %}</tr></thead>
       <tbody>
       {%- for row in table_rows %}
-        <tr><td>{{ row.date }}</td>{% for t in r.history.tickers %}<td class="num">{{ money(row.tickers[t], False) }}</td>{% endfor %}</tr>
+        <tr><td>{{ row.date }}</td>{% for t in r.history.tickers %}<td class="num">{{ money(row.tickers[t], False) if row.tickers[t] else "—" }}</td>{% endfor %}</tr>
       {%- endfor %}
       </tbody>
     </table></div>
@@ -432,7 +439,9 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
     fundSets.push(line("Money put in", data.history.contributed, css("--contributed"),
       { stepped: true, borderWidth: 1.5 }));
     const coSets = Object.keys(data.history.tickers).map((t, i) =>
-      line(data.company_names[t] + " (" + t + ")", data.history.tickers[t], css("--s" + (i % 8 + 1))));
+      line(data.company_names[t] + " (" + t + ")",
+        data.history.tickers[t].map((v) => (v > 0 ? v : null)),
+        css("--s" + (i % 16 + 1))));
     charts = [
       new Chart(document.getElementById("chart-fund"), { type: "line", data: { labels, datasets: fundSets }, options: options(), plugins: [crosshair] }),
       new Chart(document.getElementById("chart-co"), { type: "line", data: { labels, datasets: coSets }, options: options(), plugins: [crosshair] }),

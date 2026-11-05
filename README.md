@@ -1,8 +1,9 @@
 # Fella Fund
 
 Pretend money, real bragging rights. On the 1st of every month the fund "buys"
-$10,000 of the stock of every company a fella works at, then tracks how those
-buys do against the same money put into the S&P 500 (SPY) and Nasdaq-100 (QQQ).
+$10,000 of the ticker of every company or index fund a fella works at, then
+tracks how those buys do against the same money put into the S&amp;P 500 (SPY)
+and Nasdaq-100 (QQQ).
 
 Replaces the old Google Sheet + Apps Script (`main.gs`, `buyNewFunds.gs`,
 `sendNewsletter.gs`). The history from Aug 2024, including every award, is

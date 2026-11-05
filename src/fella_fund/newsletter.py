@@ -52,7 +52,7 @@ def render(a: Analysis, report: dict, secrets: Secrets | None, out_dir: Path) ->
         if m.returns:
             m_best, m_worst = max(m.returns.values()), min(m.returns.values())
         if m.fotm and m.slotm:
-            # Announced overrides may name a winner whose recomputed return isn't the max.
+            # Ties share the title; use the winners' actual returns for the message.
             m_best = max(m.returns.get(p, m_best) for p in m.fotm)
             m_worst = min(m.returns.get(p, m_worst) for p in m.slotm)
 

@@ -2,7 +2,7 @@
 {%- set b0 = r.benchmarks[0] -%}
 <div style="font-size: 16px; font-family: Arial, Helvetica, sans-serif; color: #0b0b0b; max-width: 640px;">
   Sup fellas,<br><br>
-  This is your monthly newsletter for the {{ r.fund_name }}, where we buy {{ money(r.monthly_buy, False) }} of each of our companies' stocks every month.<br>
+  This is your monthly newsletter for the {{ r.fund_name }}, where we buy {{ money(r.monthly_buy, False) }} of each fella's current company or index fund every month.<br>
   As of <strong>{{ r.as_of_long }}</strong>, our portfolio is at <strong>{{ money(p.value) }}</strong> with an annualized return of <strong>{{ pct(p.xirr) }}</strong>.<br><br>
 
   {% for b in r.benchmarks -%}
@@ -20,12 +20,12 @@
   {%- endif %}
 
   {%- if m %}
-  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-size: 14px; margin-bottom: 16px;">
+  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-size: 14px; margin-bottom: 6px; width: 100%;">
     <tr style="border-bottom: 1px solid #c3c2b7; text-align: left; color: #52514e;">
-      <th style="font-weight: normal;">{{ m_name }}</th>
-      <th style="font-weight: normal;">Company</th>
+      <th style="font-weight: normal;">Fella</th>
+      <th style="font-weight: normal;">Holding</th>
       <th style="font-weight: normal; text-align: right;">Return</th>
-      <th style="font-weight: normal; text-align: right;">vs {{ b0.ticker }}</th>
+      <th style="font-weight: normal; text-align: right;">vs {{ b0.ticker }} (pp)</th>
     </tr>
     {%- for l in m_rows %}
     <tr style="border-bottom: 1px solid #e1e0d9;">
@@ -43,6 +43,9 @@
     </tr>
     {%- endfor %}
   </table>
+  <div style="font-size: 12px; color: #52514e; margin-bottom: 16px;">
+    Return is each buy's move from the 1st to the next 1st. vs {{ b0.ticker }} is that return minus the {{ b0.name }}'s return over the same window, in percentage points.
+  </div>
   {%- endif %}
 
   {{ fella_leader_text }}<br>
