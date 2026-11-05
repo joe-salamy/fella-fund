@@ -25,26 +25,23 @@
       <th style="font-weight: normal;">Fella</th>
       <th style="font-weight: normal;">Holding</th>
       <th style="font-weight: normal; text-align: right;">Return</th>
-      <th style="font-weight: normal; text-align: right;">vs {{ b0.ticker }} (pp)</th>
     </tr>
     {%- for l in m_rows %}
     <tr style="border-bottom: 1px solid #e1e0d9;">
       <td>{{ l.person }}</td>
       <td>{{ l.company }} ({{ l.ticker }})</td>
       <td style="text-align: right;">{{ pct(l.ret, True) }}</td>
-      <td style="text-align: right;">{{ pct(l.ret - m.bench[b0.ticker], True) }}</td>
     </tr>
     {%- endfor %}
     {%- for b in r.benchmarks %}
     <tr style="color: #52514e;">
       <td colspan="2">{{ b.name }} ({{ b.ticker }})</td>
       <td style="text-align: right;">{{ pct(m.bench[b.ticker], True) }}</td>
-      <td></td>
     </tr>
     {%- endfor %}
   </table>
   <div style="font-size: 12px; color: #52514e; margin-bottom: 16px;">
-    Return is each buy's move from the 1st to the next 1st. vs {{ b0.ticker }} is that return minus the {{ b0.name }}'s return over the same window, in percentage points.
+    Return is each buy's move from the 1st to the next 1st.
   </div>
   {%- endif %}
 
