@@ -83,8 +83,8 @@ fellas:
         start: 2024-08-01
   - name: Josh
     jobs:
-      - company: Invesco Dynamic Leisure and Entertainment ETF
-        ticker: PEJ
+      - company: Madison Square Garden Entertainment
+        ticker: MSGE
         start: 2024-08-01
   - name: Kett
     jobs:
