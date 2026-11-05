@@ -38,8 +38,68 @@ fellas:
       - company: ADP
         ticker: ADP
         start: 2024-08-01
+        end: 2026-08-01
+      - company: iShares U.S. Healthcare Providers ETF
+        ticker: IHF
+        start: 2026-08-02
   - name: Murphy
     jobs:
       - company: RTX
         ticker: RTX
+        start: 2024-08-01
+        end: 2025-08-01
+      - company: Unemployed
+        ticker: null
+        start: 2025-08-02
+        end: 2026-07-31
+      - company: iShares U.S. Aerospace & Defense ETF
+        ticker: ITA
+        start: 2026-08-01
+  - name: Parker
+    jobs:
+      - company: WisdomTree Cloud Computing Fund
+        ticker: WCLD
+        start: 2024-08-01
+        end: 2025-08-01
+      - company: Unemployed
+        ticker: null
+        start: 2025-08-02
+        end: 2026-03-31
+      - company: U.S. Global Jets ETF
+        ticker: JETS
+        start: 2026-04-01
+  - name: Gavin
+    jobs:
+      - company: Palantir
+        ticker: PLTR
+        start: 2024-08-01
+  - name: Cole
+    jobs:
+      - company: River City Bank
+        ticker: RCBC
+        start: 2024-08-01
+  - name: Andrew
+    jobs:
+      - company: iShares MSCI All Country Asia ex Japan ETF
+        ticker: AAXJ
+        start: 2024-08-01
+  - name: Josh
+    jobs:
+      - company: Invesco Dynamic Leisure and Entertainment ETF
+        ticker: PEJ
+        start: 2024-08-01
+  - name: Kett
+    jobs:
+      - company: iShares U.S. Pharmaceuticals ETF
+        ticker: IHE
+        start: 2024-08-01
+  - name: Sarge
+    jobs:
+      - company: Roundhill Sports Betting & iGaming ETF
+        ticker: BETZ
+        start: 2024-08-01
+  - name: Cr8
+    jobs:
+      - company: iShares U.S. Broker-Dealers & Securities Exchanges ETF
+        ticker: IAI
         start: 2024-08-01
