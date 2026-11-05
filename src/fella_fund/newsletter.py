@@ -46,8 +46,8 @@ def render(a: Analysis, report: dict, secrets: Secrets | None, out_dir: Path) ->
     if m:
         m_name = f"{m.buy_date:%B}"
         m_rows = sorted(
-            [{"person": l.person, "company": l.company, "ticker": l.ticker,
-              "ret": m.returns[l.person]} for l in m.lots],
+            [{"person": l.person, "company": ("Short " if l.short else "") + l.company,
+              "ticker": l.ticker, "ret": m.returns[l.person]} for l in m.lots],
             key=lambda x: -x["ret"])
         if m.returns:
             m_best, m_worst = max(m.returns.values()), min(m.returns.values())

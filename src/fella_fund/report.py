@@ -40,7 +40,14 @@ def build(a: Analysis) -> dict:
     counts = a.award_counts()
     streaks = a.streaks(primary)
     best, worst = a.extremes()
-    company_of = {l.ticker: l.company for l in a.lots}
+    company_of = {l.holding: ("Short " if l.short else "") + l.company for l in a.lots}
+
+    def now_label(job) -> str:
+        if job is None:
+            return "Sitting out"
+        if not job.ticker:
+            return f"{job.company}, sitting out"
+        return f"{'Short ' if job.short else ''}{job.company} ({job.ticker})"
 
     leaderboard = []
     for f in fund.fellas:
@@ -48,8 +55,7 @@ def build(a: Analysis) -> dict:
         job = f.current_job
         leaderboard.append({
             "name": f.name,
-            "now": (f"{job.company} ({job.ticker})" if job and job.ticker
-                    else f"{job.company}, sitting out" if job else "Sitting out"),
+            "now": now_label(job),
             "contributed": pos.contributed if pos else 0.0,
             "value": pos.value if pos else 0.0,
             "xirr": pos.xirr if pos else None,
@@ -61,7 +67,7 @@ def build(a: Analysis) -> dict:
             "streak": streaks[f.name][0],
             "best_streak": streaks[f.name][1],
             "jobs": [
-                {"company": j.company, "ticker": j.ticker,
+                {"company": j.company, "ticker": j.ticker, "short": j.short,
                  "start": j.start.isoformat(), "end": j.end.isoformat() if j.end else None}
                 for j in f.jobs
             ],
@@ -70,7 +76,7 @@ def build(a: Analysis) -> dict:
 
     companies = [
         {"ticker": t, "company": company_of[t], "contributed": p.contributed, "value": p.value,
-         "xirr": p.xirr, "holders": sorted({l.person for l in a.lots if l.ticker == t})}
+         "xirr": p.xirr, "holders": sorted({l.person for l in a.lots if l.holding == t})}
         for t, p in tickers.items()
     ]
     companies.sort(key=lambda r: -r["value"])
@@ -81,13 +87,36 @@ def build(a: Analysis) -> dict:
             "label": f"{m.buy_date:%b %Y}",
             "complete": m.complete,
             "lots": [{"person": l.person, "ticker": l.ticker, "company": l.company,
-                      "ret": m.returns[l.person]} for l in m.lots],
+                      "short": l.short, "ret": m.returns[l.person]} for l in m.lots],
             "bench": m.bench,
             "fotm": m.fotm,
             "slotm": m.slotm,
         }
         for m in reversed(a.months)
     ]
+
+    cur = a.current_month
+    current = None
+    if cur is not None and cur.lots:
+        live = sorted(
+            ({"person": l.person, "ticker": l.ticker, "short": l.short,
+              "company": company_of[l.holding], "ret": cur.returns[l.person]}
+             for l in cur.lots),
+            key=lambda row: -row["ret"],
+        )
+        current = {
+            "label": f"{cur.buy_date:%B %Y}",
+            "buy_date": cur.buy_date.isoformat(),
+            "as_of": a.as_of.isoformat(),
+            "as_of_long": long_date(a.as_of),
+            "days": (a.as_of - cur.buy_date).days + 1,
+            "lots": live,
+            "fotm": cur.fotm,
+            "slotm": cur.slotm,
+            "fotm_ret": max(cur.returns.values()) if cur.returns else None,
+            "slotm_ret": min(cur.returns.values()) if cur.returns else None,
+            "bench": cur.bench,
+        }
 
     hist = a.history()
     history = {
@@ -130,6 +159,7 @@ def build(a: Analysis) -> dict:
         "companies": companies,
         "company_names": company_of,
         "months": months,
+        "current": current,
         "history": history,
         "records": {
             "best": extreme(best),

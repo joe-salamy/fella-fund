@@ -84,8 +84,9 @@ def test_awards_ties_and_overrides():
     a = Analysis(fund(fellas), book({"UP": UP, "DOWN": DOWN, "SPY": FLAT}), date(2024, 10, 2))
     aug = a.months[0]
     assert aug.complete and aug.fotm == ["A", "B"] and aug.slotm == ["C"]
-    assert not a.months[-1].complete and a.months[-1].fotm == []
-    assert a.award_counts()["A"] == (2, 0)
+    live = a.months[-1]
+    assert not live.complete and live.fotm == ["A", "B"] and live.slotm == ["C"]
+    assert a.award_counts()["A"] == (2, 0)  # only completed months count toward records
 
     a2 = Analysis(fund(fellas, {date(2024, 8, 1): (["C"], [])}),
                   book({"UP": UP, "DOWN": DOWN, "SPY": FLAT}), date(2024, 10, 2))
@@ -102,6 +103,30 @@ def test_benchmark_shadow_and_streaks():
     h = a.history()
     assert h["fund"].iloc[-1] == pytest.approx(p.value)
     assert h["SPY"].iloc[-1] == pytest.approx(p.bench_value["SPY"])
+
+
+def test_short_lot_is_the_inverse_of_the_index():
+    long = Fella("L", [Job("Up", "UP", date(2024, 8, 1))])
+    short = Fella("S", [Job("Short Up", "UP", date(2024, 8, 1), short=True)])
+    a = Analysis(fund([long, short]), book({"UP": UP, "SPY": FLAT}), date(2024, 12, 2))
+    aug = a.months[0]
+    basis = next(l.basis for l in a.lots if l.short and l.buy_date == date(2024, 8, 1))
+    end = a.prices.close_before("UP", date(2024, 9, 1))[1]
+    assert aug.returns["S"] == pytest.approx(1 - end / basis)
+    assert aug.returns["S"] == pytest.approx(-aug.returns["L"])
+    # A long and an equally sized short in the same ticker cancel out to cash.
+    by_person = a.by_person()
+    assert by_person["S"].value + by_person["L"].value == pytest.approx(2 * by_person["S"].contributed)
+    assert a.portfolio.value == pytest.approx(a.portfolio.contributed)
+    # Longs and shorts are separate holdings, and the history matches the position.
+    assert a.by_ticker()["UP"].contributed == a.by_ticker()["UP-SHORT"].contributed == 50_000
+    assert a.history()["fund"].iloc[-1] == pytest.approx(a.portfolio.value)
+    assert a.history()["UP-SHORT"].iloc[-1] == pytest.approx(a.by_ticker()["UP-SHORT"].value)
+
+
+def test_short_requires_ticker():
+    f = fund([Fella("A", [Job("X", None, date(2024, 1, 1), short=True)])])
+    assert any("short" in p for p in f.validate())
 
 
 def test_validate_catches_overlapping_jobs():

@@ -135,7 +135,7 @@ def cmd_job_list(args) -> None:
     for f in fund.fellas:
         print(f.name)
         for j in f.jobs:
-            what = j.ticker or "sitting out"
+            what = ("short " if j.short else "") + (j.ticker or "sitting out")
             print(f"  {j.start} to {str(j.end or 'now'):10}  {j.company} ({what})")
 
 
@@ -156,7 +156,9 @@ def cmd_job_start(args) -> None:
     ticker = None if args.sit_out else (args.ticker or "").upper() or None
     if ticker is None and not args.sit_out:
         sys.exit("Give --ticker, or --sit-out for a private company / school / unemployed.")
-    f.jobs.append(Job(args.company, ticker, start))
+    if args.short and ticker is None:
+        sys.exit("--short needs --ticker (short the company's index fund).")
+    f.jobs.append(Job(args.company, ticker, start, short=bool(args.short)))
     f.jobs.sort(key=lambda j: j.start)
     problems = fund.validate()
     if problems:
@@ -230,6 +232,7 @@ def main(argv: list[str] | None = None) -> None:
     js.add_argument("--company", required=True)
     js.add_argument("--ticker")
     js.add_argument("--sit-out", action="store_true", help="Private company, school, or unemployed.")
+    js.add_argument("--short", action="store_true", help="Short the ticker instead of buying it.")
     js.add_argument("--date", required=True, help="First day at the new job, YYYY-MM-DD.")
     js.add_argument("--new", action="store_true", help="Add a fella who isn't on the roster yet.")
     js.set_defaults(fn=cmd_job_start)

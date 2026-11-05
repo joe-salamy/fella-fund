@@ -166,6 +166,43 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
   </div>
 </section>
 
+{%- if r.current %}
+{%- set cur = r.current %}
+<section class="card" aria-labelledby="h-live">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap;">
+    <h2 id="h-live">{{ cur.label }} — live</h2>
+    <span class="tick">Prices as of {{ cur.as_of_long }} · day {{ cur.days }} of the month · refreshes when the daily build publishes</span>
+  </div>
+  <p class="sub">This month's buys, marked to market. 🏆 Fella of the Month, 🦨 Stinky Loser of the Month.</p>
+  <div class="grid2" style="margin-top: 12px;">
+    <div class="record">
+      <div class="label">Fella of the Month 🏆</div>
+      <div class="value up">{{ pct(cur.fotm_ret, True) }}</div>
+      <div>{{ names(cur.fotm) if cur.fotm else "—" }}</div>
+    </div>
+    <div class="record">
+      <div class="label">Stinky Loser of the Month 🦨</div>
+      <div class="value down">{{ pct(cur.slotm_ret, True) }}</div>
+      <div>{{ names(cur.slotm) if cur.slotm else "—" }}</div>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top: 16px;"><table>
+    <thead><tr><th>Fella</th><th>Holding</th><th class="num">Month to date</th><th class="num">Award</th></tr></thead>
+    <tbody>
+    {%- for l in cur.lots %}
+      <tr>
+        <td><strong>{{ l.person }}</strong></td>
+        <td class="wrap">{{ l.company }} <span class="tick">{{ l.ticker }}</span></td>
+        <td class="num"><span class="{{ 'up' if l.ret >= 0 else 'down' }}">{{ pct(l.ret, True) }}</span></td>
+        <td class="num">{% if l.person in cur.fotm %}🏆{% endif %}{% if l.person in cur.slotm %}🦨{% endif %}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+  <p class="sub muted" style="font-size: 13px; margin-top: 8px;">Each buy runs from the 1st (priced at the prior close) to the next 1st. Benchmarks this month: {% for b in r.benchmarks %}{{ b.ticker }} {{ pct(cur.bench[b.ticker], True) }}{% if not loop.last %} · {% endif %}{% endfor %}.</p>
+</section>
+{%- endif %}
+
 <section class="card" aria-labelledby="h-fund">
   <h2 id="h-fund">Fund vs. the same money in the index</h2>
   <p class="sub">Every buy is mirrored into {% for b in r.benchmarks %}{{ b.ticker }}{% if not loop.last %} and {% endif %}{% endfor %} on the same day, so the lines are directly comparable.</p>
@@ -302,7 +339,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
         <td>{{ m.label }}{% if not m.complete %} <span class="tick">so far</span>{% endif %}</td>
         {%- for f in r.fellas %}
         {%- if f in by %}
-        <td class="num"><span class="{{ 'up' if by[f].ret >= 0 else 'down' }}">{{ pct(by[f].ret, True) }}</span> <span class="tick">{{ by[f].ticker }}</span>{% if f in m.fotm %} 🏆{% endif %}{% if f in m.slotm %} 🦨{% endif %}</td>
+        <td class="num"><span class="{{ 'up' if by[f].ret >= 0 else 'down' }}">{{ pct(by[f].ret, True) }}</span> <span class="tick">{{ by[f].ticker }}{% if by[f].short %} short{% endif %}</span>{% if f in m.fotm %} 🏆{% endif %}{% if f in m.slotm %} 🦨{% endif %}</td>
         {%- else %}
         <td class="num tick">sat out</td>
         {%- endif %}
@@ -323,7 +360,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
     <li><strong>{{ f.name }}</strong>
       <ol>
       {%- for j in f.jobs | reverse %}
-        <li>{{ j.company }}{% if j.ticker %} ({{ j.ticker }}){% else %}, sitting out{% endif %}: {{ j.start }} to {{ j.end or "now" }}</li>
+        <li>{% if j.short %}Short {% endif %}{{ j.company }}{% if j.ticker %} ({{ j.ticker }}){% else %}, sitting out{% endif %}: {{ j.start }} to {{ j.end or "now" }}</li>
       {%- endfor %}
       </ol>
     </li>
@@ -449,6 +486,16 @@ footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
   }
   draw();
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (mode === "auto") draw(); });
+
+  // Live tracker: pick up a fresh daily build without a manual reload.
+  const asOf = data.as_of;
+  setInterval(async function () {
+    try {
+      const res = await fetch("data.json?ts=" + Date.now(), { cache: "no-store" });
+      const next = await res.json();
+      if (next.as_of !== asOf) location.reload();
+    } catch (e) {}
+  }, 300000);
 })();
 </script>
 </body>

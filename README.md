@@ -24,6 +24,10 @@ Rules:
 - Buys happen on the 1st at the **last close before the 1st**.
 - **Old shares are held** after a job change and stay credited to that fella.
 - **Private company, school, or unemployed = sit out** (`ticker: null`), no buy.
+- **Short positions**: `short: true` on a job shorts its ticker instead of
+  buying it. Each monthly $10K is $10K of notional sold, so the fella profits
+  when the index falls; the lot is marked at cash collateral + proceeds - the
+  share liability. No inverse ETF needed.
 - Returns are **total return** (dividends reinvested, Yahoo adjusted closes).
   Set `total_return: false` in `fellas.yaml` for price-only like the old sheet.
 - Fella of the Month = best return on that month's buy (1st to next 1st);
@@ -53,6 +57,7 @@ uv run pytest                  # tests
 uv run fella job list
 uv run fella job start Joe --company Apple --ticker AAPL --date 2026-11-03
 uv run fella job start Joe --company "Stanford GSB" --sit-out --date 2026-09-01
+uv run fella job start Kett --company "Roundhill Sports Betting & iGaming ETF" --ticker BETZ --short --date 2026-11-01
 uv run fella job end Joe --date 2026-10-31          # left, nothing lined up
 uv run fella job start Parker --new --company Nvidia --ticker NVDA --date 2024-08-01
 uv run fella build

@@ -25,6 +25,7 @@ class Job:
     ticker: str | None
     start: date
     end: date | None = None
+    short: bool = False  # short the ticker instead of buying it
 
     def covers(self, d: date) -> bool:
         return self.start <= d and (self.end is None or d <= self.end)
@@ -85,6 +86,8 @@ class Fund:
             for j in jobs:
                 if j.end and j.end < j.start:
                     problems.append(f"{f.name}: {j.company} ends before it starts.")
+                if j.short and not j.ticker:
+                    problems.append(f"{f.name}: {j.company} is short but has no ticker.")
             for a, b in zip(jobs, jobs[1:]):
                 if a.end is None or a.end >= b.start:
                     problems.append(
@@ -122,6 +125,7 @@ def load_fund(path: Path = ROSTER_PATH, awards_path: Path = AWARDS_PATH) -> Fund
                     ticker=(j.get("ticker") or None),
                     start=_as_date(j["start"]),
                     end=_as_date(j.get("end")),
+                    short=bool(j.get("short", False)),
                 )
                 for j in p.get("jobs", [])
             ],
@@ -150,6 +154,8 @@ def save_fund(fund: Fund, path: Path = ROSTER_PATH) -> None:
         d = {"company": j.company, "ticker": j.ticker, "start": j.start}
         if j.end:
             d["end"] = j.end
+        if j.short:
+            d["short"] = True
         return d
 
     body = {

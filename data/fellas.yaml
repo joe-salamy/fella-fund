@@ -9,6 +9,8 @@
 #   - Shares from an old job are held forever and stay credited to the fella.
 #   - A job with `ticker: null` (private company, grad school, unemployed)
 #     means the fella sits out: no buy that month.
+#   - `short: true` shorts the ticker instead: the monthly buy sells $10,000 of
+#     it, so the fella profits when the index falls. No inverse ETF needed.
 #   - `end` is the last day at the job; omit it for the current job.
 
 fund:
@@ -35,13 +37,9 @@ fellas:
         start: 2024-08-01
   - name: Brando
     jobs:
-      - company: ADP
-        ticker: ADP
+      - company: Roundhill Sports Betting & iGaming ETF
+        ticker: BETZ
         start: 2024-08-01
-        end: 2026-08-01
-      - company: iShares U.S. Healthcare Providers ETF
-        ticker: IHF
-        start: 2026-08-02
   - name: Murphy
     jobs:
       - company: RTX
@@ -90,8 +88,9 @@ fellas:
         start: 2024-08-01
   - name: Kett
     jobs:
-      - company: iShares U.S. Pharmaceuticals ETF
-        ticker: IHE
+      - company: Roundhill Sports Betting & iGaming ETF
+        ticker: BETZ
+        short: true
         start: 2024-08-01
   - name: Sarge
     jobs:

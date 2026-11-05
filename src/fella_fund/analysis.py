@@ -29,10 +29,29 @@ class Lot:
     amount: float
     basis: float  # price used for returns (adjusted when total_return)
     raw_price: float  # the quoted close, for display
+    short: bool = False  # short position: owns cash collateral + proceeds, owes the shares
 
     @property
     def shares(self) -> float:
-        return self.amount / self.basis
+        return (-1 if self.short else 1) * self.amount / self.basis
+
+    @property
+    def holding(self) -> str:
+        """Aggregation key; a long and a short in the same ticker are separate holdings."""
+        return f"{self.ticker}-SHORT" if self.short else self.ticker
+
+    def value_at(self, price) -> float:
+        """Market value of the lot: shares for a long, cash collateral + proceeds - liability
+        for a short (so a short at its entry price is worth exactly `amount`)."""
+        if self.short:
+            return self.amount * (2 - price / self.basis)
+        return self.amount * price / self.basis
+
+    def ret_at(self, price) -> float:
+        """Return over the lot's window; a short is the inverse of the index."""
+        if self.short:
+            return 1 - price / self.basis
+        return price / self.basis - 1
 
 
 @dataclass
@@ -129,7 +148,7 @@ class Analysis:
                 _, raw = self.prices.close_before(job.ticker, d, raw=True)
                 lots.append(
                     Lot(d, basis_date, f.name, job.company, job.ticker,
-                        self.fund.monthly_buy, basis, raw)
+                        self.fund.monthly_buy, basis, raw, job.short)
                 )
         return lots
 
@@ -147,7 +166,7 @@ class Analysis:
             nxt = self.buy_dates[i + 1] if i + 1 < len(self.buy_dates) else None
             complete = nxt is not None
             lots = by_date.get(d, [])
-            rets = {l.person: self._end_price(l.ticker, nxt) / l.basis - 1 for l in lots}
+            rets = {l.person: l.ret_at(self._end_price(l.ticker, nxt)) for l in lots}
             bench = {
                 b: self._end_price(b, nxt) / self.prices.close_before(b, d)[1] - 1
                 for b in self.bench_tickers
@@ -155,7 +174,8 @@ class Analysis:
             m = Month(d, nxt, complete, lots, rets, bench)
             if complete and d in self.fund.announced_awards:
                 m.fotm, m.slotm = (list(x) for x in self.fund.announced_awards[d])
-            elif complete and len(rets) >= 2:
+            elif len(rets) >= 2:
+                # Also filled for the month in progress: the site shows these live.
                 hi, lo = max(rets.values()), min(rets.values())
                 m.fotm = [p for p, r in rets.items() if r >= hi - EPS]
                 m.slotm = [p for p, r in rets.items() if r <= lo + EPS]
@@ -179,7 +199,7 @@ class Analysis:
 
     def position(self, lots: list[Lot]) -> Position:
         contributed = sum(l.amount for l in lots)
-        value = sum(l.shares * self.prices.latest(l.ticker)[1] for l in lots)
+        value = sum(l.value_at(self.prices.latest(l.ticker)[1]) for l in lots)
         flows = [(l.buy_date, -l.amount) for l in lots]
         bench_value, bench_xirr = {}, {}
         for b in self.bench_tickers:
@@ -201,8 +221,8 @@ class Analysis:
                 for f in self.fund.fellas if any(l.person == f.name for l in self.lots)}
 
     def by_ticker(self) -> dict[str, Position]:
-        return {t: self.position([l for l in self.lots if l.ticker == t])
-                for t in dict.fromkeys(l.ticker for l in self.lots)}
+        return {t: self.position([l for l in self.lots if l.holding == t])
+                for t in dict.fromkeys(l.holding for l in self.lots)}
 
     # ---- time series ---------------------------------------------------------
 
@@ -210,22 +230,22 @@ class Analysis:
         """Daily value of the fund, each benchmark shadow, each ticker, and money contributed."""
         if not self.lots:
             return pd.DataFrame()
-        tickers = list(dict.fromkeys(l.ticker for l in self.lots))
-        px = self.prices.matrix(tickers + self.bench_tickers)
+        holdings = list(dict.fromkeys(l.holding for l in self.lots))
+        px = self.prices.matrix(list(dict.fromkeys(l.ticker for l in self.lots)) + self.bench_tickers)
         px = px[px.index >= min(l.basis_date for l in self.lots)]
         px = px[px.index <= self.as_of]
         out = pd.DataFrame(index=px.index)
         out["contributed"] = 0.0
         out["fund"] = 0.0
-        for t in tickers:
+        for t in holdings:
             out[t] = 0.0
         for b in self.bench_tickers:
             out[b] = 0.0
         for l in self.lots:
             held = px.index >= l.basis_date
             out.loc[held, "contributed"] += l.amount
-            val = px.loc[held, l.ticker] * l.shares
-            out.loc[held, l.ticker] += val
+            val = l.value_at(px.loc[held, l.ticker])
+            out.loc[held, l.holding] += val
             out.loc[held, "fund"] += val
             for b in self.bench_tickers:
                 b_basis = self.prices.close_before(b, l.buy_date)[1]
@@ -315,4 +335,6 @@ class Analysis:
 
 
 def _job_label(j: Job) -> str:
-    return f"{j.company} ({j.ticker})" if j.ticker else f"{j.company} (sitting out)"
+    if not j.ticker:
+        return f"{j.company} (sitting out)"
+    return f"{'short ' if j.short else ''}{j.company} ({j.ticker})"
