@@ -5,15 +5,14 @@ $10,000 of the stock of every company a fella works at, then tracks how those
 buys do against the same money put into the S&P 500 (SPY) and Nasdaq-100 (QQQ).
 
 Replaces the old Google Sheet + Apps Script (`main.gs`, `buyNewFunds.gs`,
-`sendNewsletter.gs`). The history from Aug 2024 is rebuilt from prices, and the
-awards that were already announced are kept as-is (`data/announced_awards.yaml`).
+`sendNewsletter.gs`). The history from Aug 2024, including every award, is
+rebuilt from prices.
 
 ## How it works
 
-Only two things are stored by hand:
+Only one thing is stored by hand:
 
 - `data/fellas.yaml`: who's in the fund and their job history.
-- `data/announced_awards.yaml`: past awards that differ from a clean recompute.
 
 Everything else is derived on each run: the ledger of buys, returns, Fella /
 Stinky Loser of the Month, streaks, records, and the benchmark shadow portfolios.
@@ -88,7 +87,6 @@ ticker has prices on Yahoo. You can also just edit `data/fellas.yaml` by hand.
 
 ```
 data/fellas.yaml             roster + job history (edit this)
-data/announced_awards.yaml   historical awards kept as announced
 src/fella_fund/              analysis, site, newsletter, CLI
 src/fella_fund/templates/    site.html.j2, email.html.j2
 systemd/                     timers and services
